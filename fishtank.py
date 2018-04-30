@@ -5,7 +5,7 @@ import time as t
 from datetime import datetime,time
 
 class State():
-    INITIALISING = 1
+    INITIALIZE = 1
     SLEEPING = 2
     NORMAL = 3
     HIGHBURST = 4
@@ -13,7 +13,7 @@ class State():
     MAINTENANCE = 6
     UNDEFINED = 7
 
-    codes = {INITIALISING:'INITIALISING',
+    codes = {INITIALIZE:'INITIALIZE',
              SLEEPING:'SLEEPING',
              NORMAL:'NORMAL',
              HIGHBURST:'HIGHBURST',
@@ -21,15 +21,20 @@ class State():
              MAINTENANCE: 'MAINTENANCE',
              UNDEFINED:'UNDEFINED'}
 
+global currentState
 currentState=State.UNDEFINED
 
 def initialize():
+    global currentState;
+    currentState = State.INITIALIZE;
     print "State changed to Initializing"
     print "* Setting up GPIO"
     print "* Setting up Temperature monitor"
     print "Initializing completed"
 
 def sleeping():
+    global currentState;
+    currentState = State.SLEEPING;
     print "State changed to Sleeping"
     print "* Light OFF"
     print "* Filer ON"
@@ -40,6 +45,8 @@ def sleeping():
     print "* Diode OFF"
 
 def normal():
+    global currentState;
+    currentState = State.NORMAL;
     print "State changed to Normal"
     print "* Light ON"
     print "* Filer ON"
@@ -50,6 +57,8 @@ def normal():
     print "* Diode OFF"
 
 def highBurst():
+    global currentState;
+    currentState = State.HIGHBURST;
     print "State changed to High Burst"
     print "* Light ON"
     print "* Filer ON"
@@ -60,6 +69,8 @@ def highBurst():
     print "* Diode OFF"
 
 def feeding():
+    global currentState;
+    currentState = State.FEEDING;
     print "State changed to Feeding"
     print "* Light ON"
     print "* Filer OFF"
@@ -70,6 +81,8 @@ def feeding():
     print "* Diode OFF"
 
 def maintenance():
+    global currentState;
+    currentState = State.MAINTENANCE;
     print "State changed to Maintenance"
     print "* Light ON"
     print "* Filer OFF"
@@ -83,15 +96,24 @@ if __name__ == '__main__':
     while True:
         if ( currentState == State.UNDEFINED ):
             print "Starting program "
-            currentState = initialize();
-        
+            initialize();
+
         now = datetime.now()
         now_time = now.time()
-        if (time(10,30) <= now_time <= time(14,59)):
-            print "Under 14:59"
-        elif (time(15,00) <= now_time <= time(15,14)):
-            print "Over 15 og under 15:15"
-        elif (time(15,15) <= now_time <= time(20,00)):
-            print "Over 15:15 og under 20.00"
 
+        if (time(00,00) <= now_time <= time(17,29)):
+            if (currentState != State.SLEEPING):
+                sleeping();
+        if (time(17,30) <= now_time <= time(17,59)):
+            if (currentState != State.NORMAL):
+                normal();
+        elif (time(18,00) <= now_time <= time(18,14)):
+            if (currentState != State.FEEDING):
+                feeding();
+        elif (time(18,15) <= now_time <= time(22,59)):
+            if (currentState != State.NORMAL):
+                normal();
+        elif (time(23,00) <= now_time <= time(23,59)):
+            if (currentState != State.SLEEPING):
+                sleeping();
         t.sleep(1)
