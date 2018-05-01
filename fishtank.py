@@ -124,51 +124,92 @@ class controller(Thread):
         print "* Right Small Pump OFF"
         print "* Right Big Pump OFF"
         print "* Diode ON"
-    
-    def LeftSmallPumpState(self,State):
-        LeftSmallPump.STATE = State
+   
+    def LightState(self,State):
+        if (State != Light.STATE):
+            Light.STATE = State
 
-        if (State == False):
-            print "Left state changed to OFF"
-            LeftSmallPump.LastON = datetime.now()
-        else:
-            print "Left state changed to ON"
-            LeftSmallPump.STATE = True
+            if (State == False):
+                print "Light changed to OFF"
+            else:
+                print "Light changed to ON"
+
+
+
+    def LeftSmallPumpState(self,State):
+        if (State != LeftSmallPump.STATE):
+            LeftSmallPump.STATE = State
+
+            if (State == False):
+                print "Left Small Pump state changed to OFF"
+                LeftSmallPump.LastON = datetime.now()
+            else:
+                print "Left Small Pump state changed to ON"
+                LeftSmallPump.STATE = True
 
     def RightSmallPumpState(self,State):
-        RightSmallPump.STATE = State
+        if (State != RightSmallPump.STATE):
+            RightSmallPump.STATE = State
 
-        if (State == False):
-            print "Right state changed to OFF"
-            RightSmallPump.LastON = datetime.now()
-        else:
-            print "Right state changed to ON"
-            RightSmallPump.STATE = True
+            if (State == False):
+                print "Right Small Pump state changed to OFF"
+                RightSmallPump.LastON = datetime.now()
+            else:
+                print "Right Small Pump state changed to ON"
+                RightSmallPump.STATE = True
+
+    def RightBigPumpState(self,State):
+        if (State != RightBigPump.STATE):
+            RightBigPump.STATE = State
+
+            if (State == False):
+                print "Right Big Pump state changed to OFF"
+                RightBigPump.LastON = datetime.now()
+            else:
+                print "Right Big Pump state changed to ON"
+                RightBigPump.STATE = True
+
+    def CleanUP(self):
+        print "Change ALL states to defaults"
+
 
     def run(self):
         lastState=0
         while True:
-            print State.codes[currentState]
             if (currentState == State.INITIALIZE):
                 print "Changing state to " + State.codes[currentState]
             elif (currentState == State.SLEEPING):
                 print "Changing state to " + State.codes[currentState]
-                while currentState == lastState:
-                    if (LeftSmallPump.STATE == False and (LeftSmallPump.LastON + timedelta(0,10) < datetime.now())):
+                while currentState == lastState or lastState == State.UNDEFINED:
+                    self.LightState(False)
+                    
+                    if (LeftSmallPump.STATE == False and (LeftSmallPump.LastON + timedelta(minutes=15) < datetime.now())):
                         self.LeftSmallPumpState(True)
                     else:
                         self.LeftSmallPumpState(False)
 
-                    if (RightSmallPump.STATE == False and (RightSmallPump.LastON + timedelta(0,10) < datetime.now()) and LeftSmallPump.STATE != True):
+                    if (RightSmallPump.STATE == False and (RightSmallPump.LastON + timedelta(minutes=15) < datetime.now()) and LeftSmallPump.STATE != True):
                         self.RightSmallPumpState(True)
                     else:
                         self.RightSmallPumpState(False)
 
                     t.sleep(10)
+                self.CleanUP();
             elif (currentState == State.NORMAL):
-                while currentState == lastState:
-                    print "IN " + State.codes[currentState]
+                print "Changing state to " + State.codes[currentState]
+                while currentState == lastState or lastState == State.UNDEFINED:
+                    self.LightState(True)
+                    if(RightBigPump.STATE == false):
+                        self.LeftSmallPumpState(True)
+                        self.RightSmallPumpState(True)
+
+                    if(RightBigPump.STATE == False and RightBigPump.LastON + timedelta(hours=3 < datetime.now() and RightBigPump.LastON + timedelta(hours=3,minutes=1) > datetime.now())):
+                        self.RightBigPumpState(True)
+                    else:
+                        self.RightBigPumpState(False)
+
                     t.sleep(10)
+                seld.CleanUP();
             elif (currentState == State.HIGHBURST):
                 while currentState == lastState:
                     print "IN " + State.codes[currentState]
@@ -192,7 +233,7 @@ if __name__ == '__main__':
     
     while True:
         if ( currentState == State.UNDEFINED ):
-            print "Starting program "
+            print "Starting program"
             #initialize();
 
         now = datetime.now()
