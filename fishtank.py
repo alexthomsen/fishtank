@@ -3,6 +3,7 @@ import sys
 import time as t
 from datetime import datetime,time,timedelta
 from threading import Thread
+import logging
 
 class State():
     INITIALIZE = 1
@@ -47,8 +48,11 @@ class RightBigPump():
 
 global currentState
 currentState=State.UNDEFINED
+logging.basicConfig(level=logging.DEBUG,format="%(asctime)s:%(levelname)s:%(message)s")
 
-
+def infolog(Message):
+    logging.info(Message)
+    
 class controller(Thread):
 
     global currentState
@@ -60,80 +64,52 @@ class controller(Thread):
     def initialize(self):
         global currentState;
         currentState = State.INITIALIZE;
-        print "State changed to Initializing"
-        print "* Setting up GPIO"
-        print "* Setting up Temperature monitor"
-        print "Initializing completed"
+        infolog("State changed to Initializing")
+        infolog("* Setting up GPIO")
+        infolog("* Setting up Temperature monitor")
+        infolog("Initializing completed")
     
-    def sleeping():
-        global currentState;
-        currentState = State.SLEEPING;
-        print "State changed to Sleeping"
-        print "* Light OFF"
-        print "* Filer ON"
-        print "* Heater ON"
-        print "* Left Small Pump ON"
-        print "* Right Small Pump OFF"
-        print "* Right Big Pump ON for 3 Minutes"
-        print "* Diode OFF"
-    
-    def normal():
-        global currentState;
-        currentState = State.NORMAL;
-        print "State changed to Normal"
-        print "* Light ON"
-        print "* Filer ON"
-        print "* Heater ON"
-        print "* Left Small Pump Cycle 5 Min"
-        print "* Right Small Pump Opposite Cycle 5 Min"
-        print "* Right Big Pump ON for 3 Minutes every 3 hours"
-        print "* Diode OFF"
-    
-    def highBurst():
-        global currentState;
-        currentState = State.HIGHBURST;
-        print "State changed to High Burst"
-        print "* Light ON"
-        print "* Filer ON"
-        print "* Heater ON"
-        print "* Left Small Pump Cycle 5 Min"
-        print "* Right Small Pump Cycle 5 Min"
-        print "* Right Big Pump Cycle 5 Min"
-        print "* Diode OFF"
-    
-    def feeding():
-        global currentState;
-        currentState = State.FEEDING;
-        print "State changed to Feeding"
-        print "* Light ON"
-        print "* Filer OFF"
-        print "* Heater ON"
-        print "* Left Small Pump OFF"
-        print "* Right Small Pump OFF"
-        print "* Right Big Pump OFF"
-        print "* Diode OFF"
-    
-    def maintenance():
-        global currentState;
-        currentState = State.MAINTENANCE;
-        print "State changed to Maintenance"
-        print "* Light ON"
-        print "* Filer OFF"
-        print "* Heater OFF"
-        print "* Left Small Pump OFF"
-        print "* Right Small Pump OFF"
-        print "* Right Big Pump OFF"
-        print "* Diode ON"
+    #def highBurst():
+    #    global currentState;
+    #    currentState = State.HIGHBURST;
+    #    print "State changed to High Burst"
+    #    print "* Light ON"
+    #    print "* Filer ON"
+    #    print "* Heater ON"
+    #    print "* Left Small Pump Cycle 5 Min"
+    #    print "* Right Small Pump Cycle 5 Min"
+    #    print "* Right Big Pump Cycle 5 Min"
+    #    print "* Diode OFF"
+    #
+    #def maintenance():
+    #    global currentState;
+    #    currentState = State.MAINTENANCE;
+    #    print "State changed to Maintenance"
+    #    print "* Light ON"
+    #    print "* Filer OFF"
+    #    print "* Heater OFF"
+    #    print "* Left Small Pump OFF"
+    #    print "* Right Small Pump OFF"
+    #    print "* Right Big Pump OFF"
+    #    print "* Diode ON"
    
     def LightState(self,State):
         if (State != Light.STATE):
             Light.STATE = State
 
             if (State == False):
-                print "Light changed to OFF"
+                infolog("Light changed to OFF")
             else:
-                print "Light changed to ON"
+                infolog("Light changed to ON")
 
+    def FilterState(self,State):
+        if (State != Filter.STATE):
+            Filter.STATE = State
+
+            if (State == False):
+                infolog("Filter changed to OFF")
+            else:
+                infolog("Filter changed to ON")
 
 
     def LeftSmallPumpState(self,State):
@@ -141,10 +117,10 @@ class controller(Thread):
             LeftSmallPump.STATE = State
 
             if (State == False):
-                print "Left Small Pump state changed to OFF"
+                infolog("Left Small Pump state changed to OFF")
                 LeftSmallPump.LastON = datetime.now()
             else:
-                print "Left Small Pump state changed to ON"
+                infolog("Left Small Pump state changed to ON")
                 LeftSmallPump.STATE = True
 
     def RightSmallPumpState(self,State):
@@ -152,10 +128,10 @@ class controller(Thread):
             RightSmallPump.STATE = State
 
             if (State == False):
-                print "Right Small Pump state changed to OFF"
+                infolog("Right Small Pump state changed to OFF")
                 RightSmallPump.LastON = datetime.now()
             else:
-                print "Right Small Pump state changed to ON"
+                infolog("Right Small Pump state changed to ON")
                 RightSmallPump.STATE = True
 
     def RightBigPumpState(self,State):
@@ -163,23 +139,22 @@ class controller(Thread):
             RightBigPump.STATE = State
 
             if (State == False):
-                print "Right Big Pump state changed to OFF"
+                infolog("Right Big Pump state changed to OFF")
                 RightBigPump.LastON = datetime.now()
             else:
-                print "Right Big Pump state changed to ON"
+                infolog("Right Big Pump state changed to ON")
                 RightBigPump.STATE = True
 
     def CleanUP(self):
-        print "Change ALL states to defaults"
-
+        infolog("NOT IMPLEMENTED - Change ALL states to defaults")
 
     def run(self):
         lastState=0
         while True:
             if (currentState == State.INITIALIZE):
-                print "Changing state to " + State.codes[currentState]
+                infolog("Changing state to " + State.codes[currentState])
             elif (currentState == State.SLEEPING):
-                print "Changing state to " + State.codes[currentState]
+                infolog("Changing state to " + State.codes[currentState])
                 while currentState == lastState or lastState == State.UNDEFINED:
                     self.LightState(False)
                     
@@ -194,9 +169,9 @@ class controller(Thread):
                         self.RightSmallPumpState(False)
 
                     t.sleep(10)
-                self.CleanUP();
+                self.CleanUP()
             elif (currentState == State.NORMAL):
-                print "Changing state to " + State.codes[currentState]
+                infolog("Changing state to " + State.codes[currentState])
                 while currentState == lastState or lastState == State.UNDEFINED:
                     self.LightState(True)
                     if(RightBigPump.STATE == false):
@@ -209,19 +184,25 @@ class controller(Thread):
                         self.RightBigPumpState(False)
 
                     t.sleep(10)
-                seld.CleanUP();
+                self.CleanUP()
             elif (currentState == State.HIGHBURST):
                 while currentState == lastState:
-                    print "IN " + State.codes[currentState]
+                    infolog("IN " + State.codes[currentState])
                     t.sleep(10)
             elif (currentState == State.FEEDING):
-                while currentState == lastState:
-                    print "IN " + State.codes[currentState]
+                infolog("Changing state to " + State.codes[currentState])
+                while currentState == lastState or lastState == State.UNDEFINED:
+                    self.LightState(True)
+                    self.FilterState(False)
+                    self.LeftSmallPumpState(False)
+                    self.RightSmallPumpState(False)
+                    slef.RightBigPumpState(False)
                     t.sleep(10)
             elif (currentState == State.MAINTENANCE):
                 while currentState == lastState:
-                    print "IN " + State.codes[currentState]
+                    infolog("IN " + State.codes[currentState])
                     t.sleep(10)
+                self.CleanUP()
 
             lastState=currentState
             t.sleep(1)
@@ -233,7 +214,7 @@ if __name__ == '__main__':
     
     while True:
         if ( currentState == State.UNDEFINED ):
-            print "Starting program"
+            infolog("Starting program")
             #initialize();
 
         now = datetime.now()
